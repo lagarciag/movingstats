@@ -86,7 +86,7 @@ func TestSimpleMovingAverageFromStats(t *testing.T) {
 
 	}
 
-	avg1 := movingStats.SimpleMovingAverage()
+	avg1 := movingStats.SMA1()
 	avg2 := movingAverage.Avg()
 
 	if uint(avg1) != uint(avg2) {
@@ -127,8 +127,8 @@ func TestStandardDeviation(t *testing.T) {
 		}
 
 		std2 := movingAverage.StdDev()
-		std3 := movingStats.MovingStandardDeviation()
-		avg := movingStats.SimpleMovingAverage()
+		std3 := movingStats.StdDev1()
+		avg := movingStats.SMA1()
 
 		error := 100 - (std2 / std3 * 100)
 
