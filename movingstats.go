@@ -32,35 +32,39 @@ type MovingStats struct {
 	ema12 ewma.MovingAverage
 	ema26 ewma.MovingAverage
 
-	macd float64
+	macd           float64
+	macdDivergence float64
 }
 
 func NewMovingStats(size int) *MovingStats {
 	window := float64(size)
 	ms := &MovingStats{}
-	ms.sma = NewAverage(size)
-	ms.sma20 = NewAverage(size * 20)
+	ms.sma = movingaverage.New(size)
+	ms.sma20 = movingaverage.New(size * 20)
 
 	ms.sEma = ewma.NewMovingAverage(window)
-	ms.sEmaHistory = ringbuffer.NewBuffer(window)
+	ms.sEmaHistory = ringbuffer.NewBuffer(size)
 
 	ms.dEma = ewma.NewMovingAverage(window)
-	ms.dEmaHistory = ringbuffer.NewBuffer(window)
+	ms.dEmaHistory = ringbuffer.NewBuffer(size)
 
 	ms.tEma = ewma.NewMovingAverage(window)
-	ms.tEmaHistory = ringbuffer.NewBuffer(window)
+	ms.tEmaHistory = ringbuffer.NewBuffer(size)
 
 	ms.emaMacd9 = ewma.NewMovingAverage(window * 9)
 
 	ms.ema12 = ewma.NewMovingAverage(window * 12)
 	ms.ema26 = ewma.NewMovingAverage(window * 26)
 
+	ms.macd = ms.ema26.Value() - ms.ema12.Value()
+	ms.macdDivergence = ms.macd - ms.emaMacd9.Value()
+
 	return ms
 }
 
 func (ms *MovingStats) Add(value float64) {
 	ms.sma.Add(value)
-	ms.sma20.Add(value)
+	ms.sma20.Add(value * 20)
 
 	ms.sEma.Add(value)
 	ms.sEmaHistory.Push(value)
@@ -89,9 +93,9 @@ func (ms *MovingStats) Add(value float64) {
 		ms.tEmaUp = false
 	}
 
-	ms.emaMacd9.Add(value)
-	ms.ema12.Add(value)
-	ms.ema26.Add(value)
+	ms.emaMacd9.Add(value * 9)
+	ms.ema12.Add(value * 12)
+	ms.ema26.Add(value * 26)
 
 	ms.macd = ms.ema26.Value() - ms.ema12.Value()
 	ms.emaMacd9.Add(ms.macd)
@@ -125,11 +129,11 @@ func (ms *MovingStats) TripleEma() float64 {
 	return ms.tEma.Value()
 }
 
-func (ms *MovingStats) DoubleEmaSlope() float64 {
+func (ms *MovingStats) TripleEmaSlope() float64 {
 	return ms.tEmaSlope
 }
 
-func (ms *MovingStats) DoubleEmaUp() bool {
+func (ms *MovingStats) TripleEmaUp() bool {
 	return ms.tEmaUp
 }
 
@@ -137,8 +141,12 @@ func (ms *MovingStats) Macd() float64 {
 	return ms.macd
 }
 
-func (ms *MovingStats) EmaMad9() float64 {
+func (ms *MovingStats) EmaMacd9() float64 {
 	return ms.emaMacd9.Value()
+}
+
+func (ms *MovingStats) MacdDiv() float64 {
+	return ms.macdDivergence
 }
 
 func (ms *MovingStats) SMA1() float64 {
