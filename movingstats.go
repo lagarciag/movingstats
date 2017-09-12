@@ -1,15 +1,19 @@
 package movingstats
 
 import (
+	"sync"
+
 	"github.com/VividCortex/ewma"
 	"github.com/lagarciag/movingaverage"
 	"github.com/lagarciag/ringbuffer"
 )
 
 type MovingStats struct {
+	mu *sync.Mutex
+
 	sma *movingaverage.MovingAverage
 
-	sma20 *movingaverage.MovingAverage
+	smaLong *movingaverage.MovingAverage
 
 	sEma        ewma.MovingAverage
 	sEmaSlope   float64
@@ -34,13 +38,18 @@ type MovingStats struct {
 
 	macd           float64
 	macdDivergence float64
+
+	HistMostRecent float64
+	HistOldest     float64
+	HistNow        float64
 }
 
 func NewMovingStats(size int) *MovingStats {
 	window := float64(size)
 	ms := &MovingStats{}
+	ms.mu = &sync.Mutex{}
 	ms.sma = movingaverage.New(size)
-	ms.sma20 = movingaverage.New(size * 20)
+	ms.smaLong = movingaverage.New(size * 20)
 
 	ms.sEma = ewma.NewMovingAverage(window)
 	ms.sEmaHistory = ringbuffer.NewBuffer(size)
@@ -56,19 +65,22 @@ func NewMovingStats(size int) *MovingStats {
 	ms.ema12 = ewma.NewMovingAverage(window * 12)
 	ms.ema26 = ewma.NewMovingAverage(window * 26)
 
-	ms.macd = ms.ema26.Value() - ms.ema12.Value()
-	ms.macdDivergence = ms.macd - ms.emaMacd9.Value()
-
 	return ms
 }
 
 func (ms *MovingStats) Add(value float64) {
+	ms.mu.Lock()
 	ms.sma.Add(value)
-	ms.sma20.Add(value * 20)
-
+	ms.smaLong.Add(value)
 	ms.sEma.Add(value)
-	ms.sEmaHistory.Push(value)
-	ms.sEmaSlope = ms.sEmaHistory.Head() - ms.sEmaHistory.Tail()
+	ms.HistNow = ms.sEma.Value()
+	ms.sEmaHistory.Push(ms.HistNow)
+
+	ms.HistMostRecent = ms.sEmaHistory.MostRecent()
+	ms.HistOldest = ms.sEmaHistory.Oldest()
+
+	ms.sEmaSlope = ms.sEmaHistory.MostRecent() - ms.sEmaHistory.Oldest()
+
 	if ms.sEmaSlope > 0 {
 		ms.sEmaUp = true
 	} else {
@@ -76,8 +88,8 @@ func (ms *MovingStats) Add(value float64) {
 	}
 
 	ms.dEma.Add(value)
-	ms.dEmaHistory.Push(value)
-	ms.dEmaSlope = ms.dEmaHistory.Head() - ms.dEmaHistory.Tail()
+	ms.dEmaHistory.Push(ms.sEma.Value())
+	ms.dEmaSlope = ms.dEmaHistory.MostRecent() - ms.dEmaHistory.Oldest()
 	if ms.dEmaSlope > 0 {
 		ms.dEmaUp = true
 	} else {
@@ -85,20 +97,26 @@ func (ms *MovingStats) Add(value float64) {
 	}
 
 	ms.tEma.Add(value)
-	ms.tEmaHistory.Push(value)
-	ms.tEmaSlope = ms.tEmaHistory.Head() - ms.tEmaHistory.Tail()
+	ms.tEmaHistory.Push(ms.sEma.Value())
+
+	ms.tEmaSlope = ms.tEmaHistory.MostRecent() - ms.tEmaHistory.Oldest()
+
 	if ms.tEmaSlope > 0 {
 		ms.tEmaUp = true
 	} else {
 		ms.tEmaUp = false
 	}
 
-	ms.emaMacd9.Add(value * 9)
-	ms.ema12.Add(value * 12)
-	ms.ema26.Add(value * 26)
+	//ms.emaMacd9.Add(value)
+	ms.ema12.Add(value)
+	ms.ema26.Add(value)
 
-	ms.macd = ms.ema26.Value() - ms.ema12.Value()
+	ms.macd = ms.ema12.Value() - ms.ema26.Value()
 	ms.emaMacd9.Add(ms.macd)
+
+	ms.macdDivergence = ms.macd - ms.emaMacd9.Value()
+
+	ms.mu.Unlock()
 }
 
 func (ms *MovingStats) Ema1() float64 {
@@ -157,6 +175,6 @@ func (ms *MovingStats) StdDev1() float64 {
 	return ms.sma.MovingStandardDeviation()
 }
 
-func (ms *MovingStats) StdDev20() float64 {
-	return ms.sma20.MovingStandardDeviation()
+func (ms *MovingStats) StdDevLong() float64 {
+	return ms.smaLong.MovingStandardDeviation()
 }
