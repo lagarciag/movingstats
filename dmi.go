@@ -1,6 +1,10 @@
 package movingstats
 
-import "math"
+import (
+	"math"
+
+	"github.com/sirupsen/logrus"
+)
 
 /*DmiCal Calculates all DMI components:
 
@@ -28,27 +32,29 @@ func (ms *MovingStats) dmiCalc() {
 	upMove := currentHigh - previousHigh
 	downMove := currentLow - previousLow
 
-	if (upMove > downMove) && (upMove > 0) {
+	if (upMove > downMove) && (upMove > float64(0)) {
 		ms.plusDM = upMove
 	} else {
-		ms.plusDM = 0
+		ms.plusDM = float64(0)
 	}
 
-	if (downMove > upMove) && (downMove > 0) {
+	if (downMove > upMove) && (downMove > float64(0)) {
 		ms.minusDM = downMove
 	} else {
-		ms.minusDM = 0
+		ms.minusDM = float64(0)
 	}
 
 	ms.plusDMAvr.Add(ms.plusDM / ms.atr.Value())
 	ms.minusDMAvr.Add(ms.minusDM / ms.atr.Value())
 
-	ms.plusDI = ms.plusDMAvr.Value() * 100
-	ms.minusDI = ms.minusDMAvr.Value() * 100
+	//logrus.Debug(ms.plusDMAvr.Value(), ms.minusDMAvr.Value())
 
-	//fmt.Println(currentHigh, previousHigh, currentLow, previousLow, upMove, downMove,ms.plusDM, ms.minusDM, ms.atr.Value(), ms.plusDI, ms.minusDI)
+	ms.plusDI = ms.plusDMAvr.Value() * float64(100)
+	ms.minusDI = ms.minusDMAvr.Value() * float64(100)
+
+	//logrus.Debug(currentHigh, previousHigh, currentLow, previousLow, upMove, downMove, ms.plusDM, ms.minusDM, ms.atr.Value(), ms.plusDI, ms.minusDI)
 
 	ms.adxAvr.Add(math.Abs((ms.plusDI - ms.minusDI) / (ms.plusDI + ms.minusDI)))
-	ms.adx = 100 * ms.adxAvr.Value()
+	ms.adx = float64(100) * ms.adxAvr.Value()
 
 }
