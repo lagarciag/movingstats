@@ -62,6 +62,11 @@ type MovingStats struct {
 	macdDivergence float64
 
 	//Directional Movement
+	cHigh float64
+	cLow  float64
+	pHigh float64
+	pLow  float64
+
 	plusDM  float64
 	minusDM float64
 	plusDI  float64
@@ -216,4 +221,28 @@ func (ms *MovingStats) PlusDI() float64 {
 
 func (ms *MovingStats) MinusDI() float64 {
 	return ms.minusDI
+}
+
+func (ms *MovingStats) PlusDM() float64 {
+	return ms.plusDM
+}
+
+func (ms *MovingStats) MinusDM() float64 {
+	return ms.minusDM
+}
+
+func (ms *MovingStats) CHigh() float64 {
+	return ms.cHigh
+}
+
+func (ms *MovingStats) CLow() float64 {
+	return ms.cLow
+}
+
+func (ms *MovingStats) PHigh() float64 {
+	return ms.pHigh
+}
+
+func (ms *MovingStats) PLow() float64 {
+	return ms.pLow
 }

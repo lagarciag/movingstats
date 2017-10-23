@@ -1,9 +1,8 @@
 package movingstats
 
 import (
+	//"fmt"
 	"math"
-
-	"github.com/sirupsen/logrus"
 )
 
 /*DmiCal Calculates all DMI components:
@@ -29,6 +28,11 @@ func (ms *MovingStats) dmiCalc() {
 	currentLow := ms.currentWindowHistory.Low()
 	previousLow := ms.lastWindowHistory.Low()
 
+	ms.cHigh = currentHigh
+	ms.cLow = currentLow
+	ms.pHigh = previousHigh
+	ms.pLow = previousLow
+
 	upMove := currentHigh - previousHigh
 	downMove := currentLow - previousLow
 
@@ -43,6 +47,8 @@ func (ms *MovingStats) dmiCalc() {
 	} else {
 		ms.minusDM = float64(0)
 	}
+	//logrus.Debugf("CH: %f PH: %f CL : %f PL: %f", currentHigh, previousHigh, currentLow, previousLow)
+	//logrus.Debugf("UM: %f DM: %f PDM: %f MDM: %F", upMove, downMove, ms.plusDM, ms.minusDM)
 
 	ms.plusDMAvr.Add(ms.plusDM / ms.atr.Value())
 	ms.minusDMAvr.Add(ms.minusDM / ms.atr.Value())

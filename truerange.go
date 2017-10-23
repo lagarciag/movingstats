@@ -57,6 +57,7 @@ func (ms *MovingStats) TrueRange() float64 {
 
 	sort.Float64s(trSlice)
 
+
 	return trSlice[2]
 
 }
