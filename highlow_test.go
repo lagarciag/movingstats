@@ -5,27 +5,23 @@ import (
 
 	"sort"
 
-	"github.com/lagarciag/movingstats"
-	"github.com/lagarciag/kico/statistician"
 	"math/rand"
+
+	"github.com/lagarciag/movingstats"
 )
 
 func TestHighLow(t *testing.T) {
 
 	hl := movingstats.NewHighLow(5)
 
-
-	unsortedSlice := make([]float64,1000)
-	pf := make([]movingstats.PriFloat,1000)
+	unsortedSlice := make([]float64, 1000)
+	pf := make([]movingstats.PriFloat, 1000)
 	for ID := range unsortedSlice {
 		unsortedSlice[ID] = float64(rand.Intn(10000))
-		pf[ID] = movingstats.PriFloat{unsortedSlice[ID],0}
+		pf[ID] = movingstats.PriFloat{unsortedSlice[ID], 0}
 	}
 
-
 	sort.Float64s(unsortedSlice)
-
-
 
 	hl.SortedInsert(pf[0])
 	hl.SortedInsert(pf[1])
@@ -39,11 +35,11 @@ func TestHighLow(t *testing.T) {
 
 func TestSearch(t *testing.T) {
 
-	unsortedSlice := make([]float64,1000)
-	pf := make([]movingstats.PriFloat,1000)
+	unsortedSlice := make([]float64, 1000)
+	pf := make([]movingstats.PriFloat, 1000)
 	for ID := range unsortedSlice {
 		unsortedSlice[ID] = float64(rand.Intn(10000))
-		pf[ID] = movingstats.PriFloat{unsortedSlice[ID],0}
+		pf[ID] = movingstats.PriFloat{unsortedSlice[ID], 0}
 	}
 
 	l := len(pf)
@@ -56,9 +52,10 @@ func TestSearch(t *testing.T) {
 
 }
 
+/*
 func BenchmarkSort(b *testing.B) {
-
-	stat := statistician.NewStatistician(false)
+	//exchange, pair string, kr *kredis.Kredis, warmUp bool
+	stat := statistician.NewStatistician("CEXIO",false)
 
 	for i := 0; i < 100000; i++ {
 		stat.Add(float64(i))
@@ -69,3 +66,4 @@ func BenchmarkSort(b *testing.B) {
 		stat.Add(float64(10.2))
 	}
 }
+*/

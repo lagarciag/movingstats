@@ -23,12 +23,12 @@ func TestMain(m *testing.M) {
 
 func TestSimpleMovingAverage(t *testing.T) {
 
-	period := rand.Intn(10) + rand.Intn(1000000)
-	//period = 2
+	period := rand.Intn(10) + rand.Intn(10)
+	period = 5
 
 	t.Log("period:", period)
-	size := period + rand.Intn(1000000)
-	//size = 5
+	size := period + rand.Intn(10)
+	size = 15
 	t.Log("size:", size)
 	movingStats := movingstats.NewAverage(period)
 	movingAverage := movingaverage.New(uint(period))
@@ -94,6 +94,55 @@ func TestSimpleMovingAverageFromStats(t *testing.T) {
 		t.Error("Mistmatch: ", avg1, avg2)
 	} else {
 		t.Log("Match: ", avg1, avg2)
+	}
+
+}
+
+func TestDmi(t *testing.T) {
+	testValues := []float64{
+		1, 2, 3, 4, 5, 6, 5, 4, 0, 3, //6
+		4, 2, 1, 2, 7, 3, 4, 5, 6, 7, //7
+		8, 9, 10, 11, 12, 14, 10, 8, 9, 10,
+		8, 2, 3, 4, 1, 1, 1, 1, 1, 1,
+	}
+
+	previousClose := []float64{
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		1, 2, 3, 4, 5, 6, 5, 4, 0, 3, //6
+		4, 2, 1, 2, 7, 3, 4, 5, 6, 7, //7
+		8, 9, 10, 11, 12, 14, 10, 8, 9, 10,
+		8, 2, 3, 4, 1, 1, 1, 1, 1, 1,
+	}
+
+	currentHigh := []float64{
+		1, 2, 3, 4, 5, 6, 6, 6, 6, 6, //6
+		6, 6, 6, 6, 7, 7, 7, 7, 7, 7, //7
+		8, 9, 10, 11, 12, 14, 14, 14, 14, 14,
+		14, 14, 14, 14, 14, 10, 10, 10, 10, 8,
+	}
+
+	/*
+		trueRange := []float64{1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7,
+			7, 7, 7, 7, 6, 7, 8, 9, 9, 9, 11, 10, 9, 8, 7, 6, 12, 12, 12, 13, 13, 9, 9, 9, 9}
+	*/
+
+	windowSize := 10
+
+	ms := movingstats.NewMovingStats(windowSize)
+
+	//floatList = []float64{1,1,1,2,2,2}
+
+	for i, value := range testValues {
+		ms.Add(value)
+
+		if ms.PreviousClose() != previousClose[i] {
+			t.Error("Previous close error: ", i)
+		}
+
+		if ms.CurrentHigh() != currentHigh[i] {
+			t.Error("Current high error:", i, value, currentHigh[i])
+		}
+
 	}
 
 }

@@ -41,6 +41,10 @@ func (ms *MovingStats) trueRangeCurrentHighPreviousClose() float64 {
 	return math.Abs(currentHigh - previousClose)
 }
 
+func (ms *MovingStats) PreviousClose() float64 {
+	return ms.lastWindowHistory.MostRecent()
+}
+
 func (ms *MovingStats) trueRangeCurrentLowPreviousClose() float64 {
 	currentLow := ms.currentWindowHistory.Low()
 	previousClose := ms.lastWindowHistory.MostRecent()
@@ -56,7 +60,6 @@ func (ms *MovingStats) TrueRange() float64 {
 	trSlice[2] = ms.trueRangeCurrentLowPreviousClose()
 
 	sort.Float64s(trSlice)
-
 
 	return trSlice[2]
 

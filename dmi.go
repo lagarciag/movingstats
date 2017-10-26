@@ -1,7 +1,6 @@
 package movingstats
 
 import (
-	//"fmt"
 	"math"
 )
 
@@ -50,17 +49,32 @@ func (ms *MovingStats) dmiCalc() {
 	//logrus.Debugf("CH: %f PH: %f CL : %f PL: %f", currentHigh, previousHigh, currentLow, previousLow)
 	//logrus.Debugf("UM: %f DM: %f PDM: %f MDM: %F", upMove, downMove, ms.plusDM, ms.minusDM)
 
-	ms.plusDMAvr.Add(ms.plusDM / ms.atr.Value())
-	ms.minusDMAvr.Add(ms.minusDM / ms.atr.Value())
+	pAvrTr := ms.atr.Value()
+	mAvrTr := pAvrTr
+	if pAvrTr < 1 {
+		pAvrTr = float64(1)
+		mAvrTr = float64(1)
+	}
 
-	//logrus.Debug(ms.plusDMAvr.Value(), ms.minusDMAvr.Value())
+	ms.plusDMAvr.Add(ms.plusDM / pAvrTr)
+	ms.minusDMAvr.Add(ms.minusDM / mAvrTr)
+
+	//fmt.Println(ms.plusDM, mAvrTr, ms.plusDM/mAvrTr, ms.plusDMAvr.Value())
 
 	ms.plusDI = ms.plusDMAvr.Value() * float64(100)
 	ms.minusDI = ms.minusDMAvr.Value() * float64(100)
 
-	//logrus.Debug(currentHigh, previousHigh, currentLow, previousLow, upMove, downMove, ms.plusDM, ms.minusDM, ms.atr.Value(), ms.plusDI, ms.minusDI)
+	//fmt.Println(currentHigh, previousHigh, currentLow, previousLow, upMove, downMove, ms.plusDM, ms.minusDM, ms.atr.Value(), ms.plusDI, ms.minusDI)
 
-	ms.adxAvr.Add(math.Abs((ms.plusDI - ms.minusDI) / (ms.plusDI + ms.minusDI)))
+	pDImDI := ms.plusDI + ms.minusDI
+
+	if pDImDI == 0 {
+		pDImDI = 1
+	}
+
+	//fmt.Println((ms.plusDI - ms.minusDI), pDImDI)
+
+	ms.adxAvr.Add(math.Abs((ms.plusDI - ms.minusDI) / pDImDI))
 	ms.adx = float64(100) * ms.adxAvr.Value()
 
 }

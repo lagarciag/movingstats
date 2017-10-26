@@ -3,6 +3,8 @@ package movingstats_test
 import (
 	"testing"
 
+	"fmt"
+
 	"github.com/lagarciag/movingstats"
 )
 
@@ -28,6 +30,10 @@ func TestTrueRangeSimple(t *testing.T) {
 	currentLow := ms.CurrentLow()
 
 	trueRange := ms.TrueRange()
+
+	dmi := ms.Adx()
+
+	fmt.Println("adx ", dmi)
 
 	t.Log("Current high: ", currentHigh)
 	t.Log("Current Low: ", currentLow)

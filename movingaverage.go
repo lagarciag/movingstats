@@ -3,6 +3,8 @@ package movingstats
 import (
 	"math"
 
+	"fmt"
+
 	"github.com/lagarciag/ringbuffer"
 )
 
@@ -15,9 +17,11 @@ type MovingAverage struct {
 	//avgHistBuff *historyBuffer
 	avgHistBuff *ringbuffer.RingBuffer
 
-	avg2Sum     float64
-	variance    float64
-	varHistBuff *ringbuffer.RingBuffer
+	avg2Sum       float64
+	variance      float64
+	varHistBuff   *ringbuffer.RingBuffer
+	lastAverage   float64
+	last2AvgValue float64
 }
 
 func NewAverage(period int) *MovingAverage {
@@ -44,7 +48,10 @@ func (avg *MovingAverage) MovingStandardDeviation() float64 {
 func (avg *MovingAverage) avg(value float64) {
 	avg.count++
 
-	lastAvgValue := avg.avgHistBuff.Tail()
+	lastAvgValue := avg.avgHistBuff.Oldest()
+
+	fmt.Println(avg.avgHistBuff, lastAvgValue)
+
 	avg.avgSum = (avg.avgSum - lastAvgValue) + value
 
 	if avg.count < avg.period {
@@ -56,7 +63,7 @@ func (avg *MovingAverage) avg(value float64) {
 	avg.avgHistBuff.Push(value)
 
 	value2 := value * value
-	last2AvgValue := avg.varHistBuff.Tail()
+	last2AvgValue := avg.varHistBuff.Oldest()
 	avg.avg2Sum = (avg.avg2Sum - last2AvgValue) + value2
 
 	n := float64(avg.period)
